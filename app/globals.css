@@ -53,6 +53,17 @@ body {
   cursor: grabbing;
 }
 
+.resize-handle {
+  background-color: rgba(120, 113, 108, 0.5);
+  border-radius: 50%;
+}
+
+.resize-handle:hover {
+  background-color: rgba(120, 113, 108, 0.9);
+  transform: scale(1.3);
+}
+
+
 @keyframes trash-pulse {
   0%,
   100% {
@@ -63,3 +74,6 @@ body {
   }
 }
 
+.trash-highlighted {
+  animation: trash-pulse 0.8s ease-in-out infinite;
+}
