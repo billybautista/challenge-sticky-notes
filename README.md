@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
+yarn install
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Create notes** — double-click on the board or use the toolbar button
+- **Edit text** — double-click on a note to type, click outside to save
+- **Drag & drop** — grab a note and move it anywhere on the board
+- **Resize** — hover over a note's edges or corners and drag to resize
+- **Delete** — drag a note to the trash zone at the bottom
+- **Color & size** — pick a color and size from the toolbar before creating
+- **Persistence** — notes are saved to localStorage automatically
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture
 
-## Learn More
+The app uses **unidirectional data flow** with React's `useReducer`. All notes live in a single array managed by `useStickyNotes`, which wraps a reducer and syncs with localStorage. The `Board` component orchestrates everything: it holds the state and passes it down to `StickyNote`, `Toolbar`, and `TrashZone` through props.
 
-To learn more about Next.js, take a look at the following resources:
+Drag and resize interactions are split into separate hooks (`useStickyNoteDrag`, `useStickyNoteResize`), each handling their own lifecycle with pointer capture. `useStickyBoardEvents` coordinates them at the board level, prioritizing resize over drag. This keeps each interaction isolated and easy to modify.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Types and constants (`lib/types.ts`, `lib/constants.ts`) form a shared config layer. Colors, sizes, and resize handles are data-driven, so extending them doesn't require component changes. Styling uses Tailwind plus a few custom CSS rules in `globals.css` for the dot-grid background, shadows, and animations.
