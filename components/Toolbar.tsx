@@ -1,13 +1,28 @@
+import {
+  AVAILABLE_COLORS,
+  AVAILABLE_SIZES,
+  NOTE_COLORS,
+  NOTE_SIZES,
+  SIZE_ICONS,
+} from "@/lib/constants";
+import type { NoteColor, NoteSize } from "@/lib/types";
 import { File, Plus } from "lucide-react";
 
-const COLOR_HEADERS = ["#fde047", "#86efac", "#93c5fd", "#f9a8d4"];
-const SIZE_ICONS = [
-  { w: 12, h: 14 },
-  { w: 16, h: 18 },
-  { w: 20, h: 22 },
-];
+interface ToolbarProps {
+  selectedColor: NoteColor;
+  selectedSize: NoteSize;
+  onColorChange: (color: NoteColor) => void;
+  onSizeChange: (size: NoteSize) => void;
+  onAddNote: () => void;
+}
 
-export default function Toolbar() {
+const Toolbar = ({
+  selectedColor,
+  selectedSize,
+  onColorChange,
+  onSizeChange,
+  onAddNote,
+}: ToolbarProps) => {
   return (
     <div className="absolute left-3 top-1/2 -translate-y-1/2 w-14 bg-white/90 backdrop-blur-sm border border-stone-200 rounded-2xl flex flex-col items-center py-3 gap-1 z-50 shadow-lg">
       <div
@@ -22,26 +37,62 @@ export default function Toolbar() {
       <span className="text-[9px] text-stone-400 mt-2 mb-0.5 uppercase tracking-wider">
         Color
       </span>
-      {COLOR_HEADERS.map((bg, i) => (
+      {AVAILABLE_COLORS.map((c) => (
         <button
-          key={i}
+          key={c}
           className={`w-7 h-7 rounded-full border-2 transition-all ${
-            i === 0
+            selectedColor === c
               ? "border-stone-600 scale-110"
               : "border-transparent hover:scale-110"
           }`}
-          style={{ backgroundColor: bg }}
+          style={{ backgroundColor: NOTE_COLORS[c].header }}
+          onClick={() => onColorChange(c)}
+          title={c.charAt(0).toUpperCase() + c.slice(1)}
+          aria-label={`Select ${c} color`}
         />
+      ))}
+
+      {/* Divider */}
+      <div className="w-7 h-px bg-stone-200 mt-2" />
+
+      <span className="text-[9px] text-stone-400 mt-2 mb-0.5 uppercase tracking-wider">
+        Size
+      </span>
+      {AVAILABLE_SIZES.map((s) => (
+        <button
+          key={s}
+          className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+            selectedSize === s
+              ? "bg-stone-700 text-white"
+              : "bg-stone-50 text-stone-400 hover:bg-stone-100"
+          }`}
+          onClick={() => onSizeChange(s)}
+          title={`${s.charAt(0).toUpperCase() + s.slice(1)} (${
+            NOTE_SIZES[s].width
+          }px)`}
+        >
+          <div
+            className="border-2 rounded-sm"
+            style={{
+              width: SIZE_ICONS[s].w,
+              height: SIZE_ICONS[s].h,
+              borderColor: "currentColor",
+            }}
+          />
+        </button>
       ))}
 
       <div className="flex-1" />
 
       <button
         className="w-10 h-10 rounded-xl bg-stone-700 text-white flex items-center justify-center hover:bg-stone-800 active:bg-stone-900 transition-colors shadow-md"
+        onClick={onAddNote}
         title="Add Note"
       >
-        <Plus className="w-5 h-5 text-white" />
+        <Plus className="w-5 h-5" />
       </button>
     </div>
   );
-}
+};
+
+export default Toolbar;
