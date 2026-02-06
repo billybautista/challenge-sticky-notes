@@ -15,6 +15,9 @@ yarn dev
 - **Color & size** — pick a color and size from the toolbar before creating
 - **Persistence** — notes are saved to localStorage automatically
 
+<img width="1502" height="818" alt="Captura de pantalla 2026-02-06 a la(s) 5 52 35 p  m" src="https://github.com/user-attachments/assets/43cf5ef7-97cc-49a3-bf28-b8af2f05aab9" />
+
+
 ## Architecture
 
 The app uses **unidirectional data flow** with React's `useReducer`. All notes live in a single array managed by `useStickyNotes`, which wraps a reducer and syncs with localStorage. The `Board` component orchestrates everything: it holds the state and passes it down to `StickyNote`, `Toolbar`, and `TrashZone` through props.
