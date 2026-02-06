@@ -2,6 +2,7 @@
 
 import { useStickyBoardEvents } from "@/hooks/useStickyBoardEvents";
 import { useStickyNoteDrag } from "@/hooks/useStickyNoteDrag";
+import { useStickyNoteResize } from "@/hooks/useStickyNoteResize";
 import { useStickyNotes } from "@/hooks/useStickyNotes";
 import { NOTE_SIZES } from "@/lib/constants";
 import type { NoteColor, NoteSize } from "@/lib/types";
@@ -11,25 +12,39 @@ import Toolbar from "./Toolbar";
 import TrashZone from "./TrashZone";
 
 const Board = () => {
-  const { notes, dispatch, addNote, updateNoteContent } = useStickyNotes();
+  const { notes, notesRef, dispatch, addNote, updateNoteContent } =
+    useStickyNotes();
 
   const [selectedColor, setSelectedColor] = useState<NoteColor>("yellow");
   const [selectedSize, setSelectedSize] = useState<NoteSize>("medium");
 
   const boardRef = useRef<HTMLDivElement>(null);
+  const trashZoneRef = useRef<HTMLDivElement>(null);
+
+  const {
+    resizeCursor,
+    handleResizeStart,
+    handleResizeMove,
+    handleResizeEnd,
+    cancelResize,
+  } = useStickyNoteResize(dispatch, notesRef, boardRef);
 
   const {
     draggingNoteId,
+    trashHighlighted,
     handleNoteDragStart,
     handleDragMove,
     handleDragEnd,
     cancelDrag,
-  } = useStickyNoteDrag(dispatch, boardRef);
+  } = useStickyNoteDrag(dispatch, notesRef, boardRef, trashZoneRef);
 
   const { handlePointerMove, handlePointerUp, handleLostPointerCapture } =
     useStickyBoardEvents({
+      handleResizeMove,
       handleDragMove,
+      handleResizeEnd,
       handleDragEnd,
+      cancelResize,
       cancelDrag,
     });
 
@@ -68,13 +83,13 @@ const Board = () => {
     <div className="board-canvas relative h-screen w-screen overflow-hidden select-none">
       <div
         ref={boardRef}
-        className="absolute inset-0  overflow-hidden touch-none"
+        className="absolute inset-0 overflow-hidden touch-none"
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onLostPointerCapture={handleLostPointerCapture}
         onDoubleClick={handleBoardDoubleClick}
         style={{
-          cursor: draggingNoteId ? "grabbing" : "default",
+          cursor: draggingNoteId ? "grabbing" : resizeCursor || "default",
         }}
       >
         {notes.map((note) => (
@@ -82,10 +97,15 @@ const Board = () => {
             key={note.id}
             note={note}
             onDragStart={handleNoteDragStart}
+            onResizeStart={handleResizeStart}
             onContentChange={updateNoteContent}
           />
         ))}
-        <TrashZone />
+        <TrashZone
+          ref={trashZoneRef}
+          isHighlighted={trashHighlighted}
+          isVisible={draggingNoteId !== null}
+        />
       </div>
       <Toolbar
         selectedColor={selectedColor}

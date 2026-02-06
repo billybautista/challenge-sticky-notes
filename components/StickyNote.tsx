@@ -1,6 +1,7 @@
 import { NOTE_COLORS } from "@/lib/constants";
-import type { StickyNote as StickyNoteType } from "@/lib/types";
+import type { ResizeHandle, StickyNote as StickyNoteType } from "@/lib/types";
 import { useCallback, useRef, useState } from "react";
+import StickyNoteResizeHandles from "./StickyNoteResizeHandles";
 
 interface StickyNoteProps {
   note: StickyNoteType;
@@ -12,12 +13,20 @@ interface StickyNoteProps {
     offsetY: number,
     pointerId: number
   ) => void;
+  onResizeStart: (
+    noteId: string,
+    handle: ResizeHandle,
+    pointerId: number,
+    pointerX: number,
+    pointerY: number
+  ) => void;
   onContentChange: (noteId: string, content: string) => void;
 }
 
 const StickyNote = ({
   note,
   onDragStart,
+  onResizeStart,
   onContentChange,
 }: StickyNoteProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -26,12 +35,18 @@ const StickyNote = ({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if ((e.target as HTMLElement).tagName.toLowerCase() === "textarea") {
+      // Don't start a drag when clicking on resize handles or the text area
+      if (
+        (e.target as HTMLElement).classList.contains("resize-handle") ||
+        (e.target as HTMLElement).tagName.toLowerCase() === "textarea"
+      ) {
         return;
       }
 
       e.stopPropagation();
 
+      // Store the offset between the pointer and the note's top-left corner
+      // so the note follows from where the user grabbed it, not from (0,0).
       if (nodeRef.current) {
         const rect = nodeRef.current.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
@@ -112,6 +127,12 @@ const StickyNote = ({
           )}
         </div>
       </div>
+
+      <StickyNoteResizeHandles
+        onResizeStart={(handle, pointerId, x, y) =>
+          onResizeStart(note.id, handle, pointerId, x, y)
+        }
+      />
     </div>
   );
 };
