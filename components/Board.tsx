@@ -1,15 +1,101 @@
+"use client";
+
+import { useStickyBoardEvents } from "@/hooks/useStickyBoardEvents";
+import { useStickyNoteDrag } from "@/hooks/useStickyNoteDrag";
+import { useStickyNotes } from "@/hooks/useStickyNotes";
+import { NOTE_SIZES } from "@/lib/constants";
+import type { NoteColor, NoteSize } from "@/lib/types";
+import { useCallback, useRef, useState } from "react";
 import StickyNote from "./StickyNote";
 import Toolbar from "./Toolbar";
 import TrashZone from "./TrashZone";
 
-function Board() {
+const Board = () => {
+  const { notes, dispatch, addNote, updateNoteContent } = useStickyNotes();
+
+  const [selectedColor, setSelectedColor] = useState<NoteColor>("yellow");
+  const [selectedSize, setSelectedSize] = useState<NoteSize>("medium");
+
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  const {
+    draggingNoteId,
+    handleNoteDragStart,
+    handleDragMove,
+    handleDragEnd,
+    cancelDrag,
+  } = useStickyNoteDrag(dispatch, boardRef);
+
+  const { handlePointerMove, handlePointerUp, handleLostPointerCapture } =
+    useStickyBoardEvents({
+      handleDragMove,
+      handleDragEnd,
+      cancelDrag,
+    });
+
+  const handleBoardDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target !== e.currentTarget) return;
+
+      const boardRect = boardRef.current?.getBoundingClientRect();
+      if (!boardRect) return;
+
+      const { width, height } = NOTE_SIZES[selectedSize];
+      const x = e.clientX - boardRect.left - width / 2;
+      const y = e.clientY - boardRect.top - height / 2;
+
+      addNote(x, y, selectedColor, selectedSize);
+    },
+    [addNote, selectedColor, selectedSize]
+  );
+
+  const handleAddNote = useCallback(() => {
+    const boardEl = boardRef.current;
+    if (!boardEl) return;
+
+    const rect = boardEl.getBoundingClientRect();
+    const { width, height } = NOTE_SIZES[selectedSize];
+
+    addNote(
+      rect.width / 2 - width / 2,
+      rect.height / 2 - height / 2,
+      selectedColor,
+      selectedSize
+    );
+  }, [addNote, selectedColor, selectedSize]);
+
   return (
-    <div className="board-canvas relative h-screen w-screen overflow-hidden select-none ">
-      <Toolbar />
-      <StickyNote />
-      <TrashZone />
+    <div className="board-canvas relative h-screen w-screen overflow-hidden select-none">
+      <div
+        ref={boardRef}
+        className="absolute inset-0  overflow-hidden touch-none"
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onLostPointerCapture={handleLostPointerCapture}
+        onDoubleClick={handleBoardDoubleClick}
+        style={{
+          cursor: draggingNoteId ? "grabbing" : "default",
+        }}
+      >
+        {notes.map((note) => (
+          <StickyNote
+            key={note.id}
+            note={note}
+            onDragStart={handleNoteDragStart}
+            onContentChange={updateNoteContent}
+          />
+        ))}
+        <TrashZone />
+      </div>
+      <Toolbar
+        selectedColor={selectedColor}
+        selectedSize={selectedSize}
+        onColorChange={setSelectedColor}
+        onSizeChange={setSelectedSize}
+        onAddNote={handleAddNote}
+      />
     </div>
   );
-}
+};
 
 export default Board;
