@@ -30,6 +30,19 @@ export function notesReducer(
           : n
       );
 
+    case "RESIZE_NOTE":
+      return state.map((n) =>
+        n.id === action.payload.id
+          ? {
+              ...n,
+              x: action.payload.x,
+              y: action.payload.y,
+              width: action.payload.width,
+              height: action.payload.height,
+            }
+          : n
+      );
+
     case "SET_NOTES":
       return action.payload;
 

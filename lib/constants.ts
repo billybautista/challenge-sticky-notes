@@ -1,4 +1,4 @@
-import type { NoteColor, NoteSize } from "./types";
+import type { NoteColor, NoteSize, ResizeHandle } from "./types";
 
 export const NOTE_COLORS: Record<
   NoteColor,
@@ -17,6 +17,9 @@ export const NOTE_SIZES: Record<NoteSize, { width: number; height: number }> = {
   large: { width: 320, height: 320 },
 };
 
+export const MIN_NOTE_WIDTH = 140;
+export const MIN_NOTE_HEIGHT = 120;
+
 export const AVAILABLE_COLORS: NoteColor[] = [
   "yellow",
   "pink",
@@ -31,3 +34,60 @@ export const SIZE_ICONS: Record<NoteSize, { w: number; h: number }> = {
   medium: { w: 14, h: 14 },
   large: { w: 18, h: 18 },
 };
+
+export const HANDLE_SIZE = 12;
+
+const CURSOR_BY_DIRECTION: Record<ResizeHandle, string> = {
+  "top-left": "nwse-resize",
+  top: "ns-resize",
+  "top-right": "nesw-resize",
+  right: "ew-resize",
+  "bottom-right": "nwse-resize",
+  bottom: "ns-resize",
+  "bottom-left": "nesw-resize",
+  left: "ew-resize",
+};
+
+function buildHandleStyle(position: ResizeHandle): React.CSSProperties {
+  const half = -HANDLE_SIZE / 2;
+  const base = { width: HANDLE_SIZE, height: HANDLE_SIZE };
+
+  const isTop = position.includes("top");
+  const isBottom = position.includes("bottom");
+  const isLeft = position === "left" || position.endsWith("-left");
+  const isRight = position === "right" || position.endsWith("-right");
+  const isEdgeV = position === "top" || position === "bottom";
+  const isEdgeH = position === "left" || position === "right";
+
+  return {
+    ...base,
+    ...(isTop && { top: half }),
+    ...(isBottom && { bottom: half }),
+    ...(isLeft && { left: half }),
+    ...(isRight && { right: half }),
+    ...(isEdgeV && { left: "50%", marginLeft: half }),
+    ...(isEdgeH && { top: "50%", marginTop: half }),
+  };
+}
+
+const ALL_HANDLES: ResizeHandle[] = [
+  "top-left",
+  "top",
+  "top-right",
+  "right",
+  "bottom-right",
+  "bottom",
+  "bottom-left",
+  "left",
+];
+
+export const RESIZE_HANDLES = ALL_HANDLES.map((position) => ({
+  position,
+  cursorClass: `cursor-${CURSOR_BY_DIRECTION[position].replace(
+    "-resize",
+    ""
+  )}-resize`,
+  style: buildHandleStyle(position),
+}));
+
+export const CURSOR_MAP: Record<string, string> = CURSOR_BY_DIRECTION;
